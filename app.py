@@ -30,12 +30,25 @@ def submit_number():
 
 @app.route('/result', methods=['GET'])
 def get_result():
+    now = time.time()
+
     if not session_data["numbers"]:
+        print("⛔️ Список пуст")
         return jsonify({"min": None})
 
-    if len(session_data["numbers"]) >= 5 or time.time() - session_data["start_time"] >= 10:
+    elapsed = now - session_data["start_time"] if session_data["start_time"] else 0
+
+    if len(session_data["numbers"]) >= 5 or elapsed >= 5:
         min_val = min(session_data["numbers"])
         print(f"📤 Отправляем минимум: {min_val}")
+
+        # 🧹 Очистка после матча
+        session_data["numbers"].clear()
+        session_data["start_time"] = None
+        print("🧼 Сессия очищена")
+
         return jsonify({"min": min_val})
     else:
+        print(f"⏳ Ждём игроков... ({elapsed:.1f} сек)")
         return jsonify({"min": None})
+
