@@ -25,7 +25,7 @@ def submit_number():
     if len(session_data["numbers"]) < 5:
         session_data["numbers"].append(num)
 
-    print(f"🔥 Получено число: {num}")
+    print(f"Получено число: {num}")
     return jsonify({"status": "submitted"})
 
 @app.route('/result', methods=['GET'])
@@ -33,22 +33,23 @@ def get_result():
     now = time.time()
 
     if not session_data["numbers"]:
-        print("⛔️ Список пуст")
+        print("Список пуст")
         return jsonify({"min": None})
 
     elapsed = now - session_data["start_time"] if session_data["start_time"] else 0
 
     if len(session_data["numbers"]) >= 5 or elapsed >= 5:
         min_val = min(session_data["numbers"])
-        print(f"📤 Отправляем минимум: {min_val}")
-
-        # 🧹 Очистка после матча
-        session_data["numbers"].clear()
-        session_data["start_time"] = None
-        print("🧼 Сессия очищена")
+        print(f"Отправляем минимум: {min_val}")
 
         return jsonify({"min": min_val})
     else:
-        print(f"⏳ Ждём игроков... ({elapsed:.1f} сек)")
+        print(f"Ждём игроков... ({elapsed:.1f} сек)")
         return jsonify({"min": None})
 
+@app.route('/clear-session', methods=['POST'])
+def clear_session_endpoint():
+    session_data["numbers"].clear()
+    session_data["start_time"] = None
+    print("Сессия очищена")
+    return jsonify({"status": "cleared"})
