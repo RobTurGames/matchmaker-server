@@ -47,19 +47,27 @@ def clear_batch(index):
 
 @app.route('/result', methods=['GET'])
 def get_result():
-    active_batches = [batch for batch in session_data["batches"] if batch]
-    if not active_batches:
-        return jsonify({"min": None, "message": "Нет активных партий"})
+    batch_param = request.args.get('batch')
+    if batch_param is None:
+        return jsonify({"error": "Missing batch index"}), 400
 
-    result = []
-    for i, batch in enumerate(active_batches):
-        result.append({
-            "batch": i,
-            "numbers": batch,
-            "min": min(batch)
-        })
+    try:
+        batch_index = int(batch_param)
+    except ValueError:
+        return jsonify({"error": "Invalid batch index"}), 400
 
-    return jsonify(result)
+    if batch_index < 0 or batch_index >= len(session_data["batches"]):
+        return jsonify({"min": None, "message": "Batch not found"})
+
+    batch = session_data["batches"][batch_index]
+    if not batch:
+        return jsonify({"min": None, "message": "Batch is empty"})
+
+    return jsonify({
+        "batch": batch_index,
+        "min": min(batch),
+        "numbers": batch
+    })
 
 @app.route('/clear-session', methods=['POST'])
 def clear_session_endpoint():
