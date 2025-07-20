@@ -23,7 +23,6 @@ def submit_number():
     num = int(data['number'])
     print(f"Получено число: {num}")
 
-    # Создаём новую партию, если нужно
     if not session_data["batches"] or len(session_data["batches"][-1]) >= 5:
         session_data["batches"].append([])
         session_data["batch_expiration"].append(False)
@@ -31,14 +30,13 @@ def submit_number():
     batch_index = len(session_data["batches"]) - 1
     session_data["batches"][batch_index].append(num)
 
-    # Если таймер не был запущен — запускаем
     if not session_data["batch_expiration"][batch_index]:
         timer = Timer(20, lambda: clear_batch(batch_index))
         timer.start()
 
         session_data["batch_timers"].append(timer)
         session_data["batch_expiration"][batch_index] = True
-        print(f"🕒 Таймер очистки запущен для партии #{batch_index}")
+        print(f"Таймер очистки запущен для партии #{batch_index}")
 
     return jsonify({"status": f"number added to batch {batch_index}"})
 
@@ -75,10 +73,33 @@ def get_result():
 def clear_session_endpoint():
     session_data["batches"].clear()
 
-    # Отменяем все таймеры, если они ещё активны
     for t in session_data["batch_timers"]:
         t.cancel()
 
     session_data["batch_timers"].clear()
     print("Вся сессия полностью очищена")
     return jsonify({"status": "session cleared"})
+    
+@app.route('/clear-by-number', methods=['POST'])
+def clear_by_number():
+    data = request.get_json()
+    if not data or 'number' not in data:
+        return jsonify({"error": "Invalid input"}), 400
+
+    num = int(data['number'])
+
+    for i, batch in enumerate(session_data["batches"]):
+        if num in batch:
+            session_data["batches"][i] = []
+
+            if i < len(session_data["batch_timers"]):
+                session_data["batch_timers"][i].cancel()
+
+            if "batch_expiration" in session_data and i < len(session_data["batch_expiration"]):
+                session_data["batch_expiration"][i] = False
+
+            print(f"Число {num} найдено — партия #{i} очищена.")
+            return jsonify({"status": f"batch {i} cleared", "number": num})
+
+    print(f"Число {num} не найдено ни в одной партии.")
+    return jsonify({"status": "not found", "number": num})
