@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import time
+from threading import Timer
 
 app = Flask(__name__)
 session_data = {
@@ -41,7 +42,7 @@ def get_result():
     if len(session_data["numbers"]) >= 5 or elapsed >= 5:
         min_val = min(session_data["numbers"])
         print(f"Отправляем минимум: {min_val}")
-
+        Timer(15, clear_session_endpoint).start()
         return jsonify({"min": min_val})
     else:
         print(f"Ждём игроков... ({elapsed:.1f} сек)")
