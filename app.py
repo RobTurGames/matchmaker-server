@@ -44,6 +44,7 @@ def clear_batch(index):
     if index < len(session_data["batches"]):
         print(f"Очищаем партию {index}: {session_data['batches'][index]}")
         session_data["batches"][index] = []
+        session_data["batch_expiration"][index] = False
 
 @app.route('/result', methods=['GET'])
 def get_result():
