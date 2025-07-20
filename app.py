@@ -42,7 +42,7 @@ def submit_number():
 
 def clear_batch(index):
     if index < len(session_data["batches"]):
-        print(f"🧼 Очищаем партию {index}: {session_data['batches'][index]}")
+        print(f"Очищаем партию {index}: {session_data['batches'][index]}")
         session_data["batches"][index] = []
 
 @app.route('/result', methods=['GET'])
@@ -70,5 +70,5 @@ def clear_session_endpoint():
         t.cancel()
 
     session_data["batch_timers"].clear()
-    print("🔥 Вся сессия полностью очищена")
+    print("Вся сессия полностью очищена")
     return jsonify({"status": "session cleared"})
